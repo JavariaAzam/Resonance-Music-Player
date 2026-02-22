@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resonance — Music Player</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ═══════════════════════════════════════════
+       SIDEBAR
+       ═══════════════════════════════════════════ -->
+  <aside class="sidebar">
+
+    <div class="logo">
+      Resonance
+      <span>Music Player</span>
+    </div>
+
+    <!-- Search -->
+    <div class="search-box">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search songs, artists, albums…"
+        oninput="handleSearch(this.value)"
+        autocomplete="off"
+      />
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-section">
+      <h4>Explore</h4>
+
+      <div class="nav-item active" onclick="showView('discover')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Discover
+      </div>
+
+      <div class="nav-item" onclick="showView('categories')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/>
+          <rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        Genres
+      </div>
+
+      <div class="nav-item" onclick="showView('history')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="12 8 12 12 14 14"/>
+          <path d="M3.05 11a9 9 0 1 0 .5-4"/>
+          <polyline points="3 3 3 7 7 7"/>
+        </svg>
+        History
+      </div>
+    </div>
+
+    <!-- Up Next queue -->
+    <div class="queue-section">
+      <h4>Up Next</h4>
+      <div id="queueList"></div>
+    </div>
+
+  </aside>
+
+
+  <!-- ═══════════════════════════════════════════
+       MAIN CONTENT
+       ═══════════════════════════════════════════ -->
+  <main class="main">
+
+    <!-- ── DISCOVER VIEW ── -->
+    <div class="view active" id="view-discover">
+      <h1 class="section-title">Discover</h1>
+      <p class="section-sub">Public-domain masterworks — click any track to stream instantly</p>
+
+      <div class="tabs">
+        <button class="tab active"       onclick="filterByGenre('all', this)">All</button>
+        <button class="tab"              onclick="filterByGenre('Romantic', this)">Romantic</button>
+        <button class="tab"              onclick="filterByGenre('Sad', this)">Sad</button>
+        <button class="tab"              onclick="filterByGenre('Electronic', this)">Electronic</button>
+        <button class="tab"              onclick="filterByGenre('Pop-rock', this)">Pop-rock</button>
+      </div>
+
+      <div class="songs-grid" id="songGrid"></div>
+    </div>
+
+
+    <!-- ── GENRES VIEW ── -->
+    <div class="view" id="view-categories">
+      <h1 class="section-title">Browse Genres</h1>
+      <p class="section-sub">Explore by mood and style</p>
+      <div class="categories-grid" id="categoriesGrid"></div>
+    </div>
+
+
+    <!-- ── HISTORY VIEW ── -->
+    <div class="view" id="view-history">
+      <h1 class="section-title">Listening History</h1>
+      <p class="section-sub">Songs you've played — persisted across sessions</p>
+      <div class="history-list" id="historyList"></div>
+    </div>
+
+  </main>
+
+
+  <!-- ═══════════════════════════════════════════
+       PLAYER BAR  (bottom)
+       ═══════════════════════════════════════════ -->
+  <div class="player-bar">
+
+    <!-- Song info -->
+    <div class="player-song">
+      <div class="player-thumb" id="playerThumb">🎵</div>
+      <div class="player-meta">
+        <div class="player-title"  id="playerTitle">Select a song to play</div>
+        <div class="player-artist" id="playerArtist">—</div>
+      </div>
+    </div>
+
+    <!-- Transport controls + progress -->
+    <div class="player-controls">
+
+      <div class="controls-row">
+
+        <!-- Shuffle -->
+        <button class="ctrl-btn" id="shuffleBtn" onclick="toggleShuffle()" title="Shuffle (S)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16 3 21 3 21 8"/>
+            <line x1="4" y1="20" x2="21" y2="3"/>
+            <polyline points="21 16 21 21 16 21"/>
+            <line x1="15" y1="15" x2="21" y2="21"/>
+          </svg>
+        </button>
+
+        <!-- Previous -->
+        <button class="ctrl-btn" onclick="prevSong()" title="Previous / Restart (←)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="19 20 9 12 19 4 19 20"/>
+            <line x1="5" y1="19" x2="5" y2="5"/>
+          </svg>
+        </button>
+
+        <!-- Play / Pause -->
+        <button class="play-pause" id="playPauseBtn" onclick="togglePlay()" title="Play / Pause (Space)">
+          <svg id="playIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          <svg id="pauseIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="display:none">
+            <rect x="6" y="4" width="4" height="16"/>
+            <rect x="14" y="4" width="4" height="16"/>
+          </svg>
+        </button>
+
+        <!-- Next -->
+        <button class="ctrl-btn" onclick="nextSong()" title="Next (→)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 4 15 12 5 20 5 4"/>
+            <line x1="19" y1="5" x2="19" y2="19"/>
+          </svg>
+        </button>
+
+        <!-- Loop -->
+        <button class="ctrl-btn" id="loopBtn" onclick="toggleLoop()" title="Loop (L)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="17 1 21 5 17 9"/>
+            <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+            <polyline points="7 23 3 19 7 15"/>
+            <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+          </svg>
+        </button>
+
+      </div><!-- /controls-row -->
+
+      <!-- Progress bar -->
+      <div class="progress-row">
+        <span class="time-label" id="currentTime">0:00</span>
+        <div class="progress-bar" id="progressBar" onclick="seekTo(event)">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <span class="time-label" id="totalTime">0:00</span>
+      </div>
+
+    </div><!-- /player-controls -->
+
+    <!-- Volume -->
+    <div class="player-right">
+      <div class="volume-row">
+        <button class="ctrl-btn" id="muteBtn" onclick="toggleMute()" title="Mute (M)">
+          <!-- icon injected by JS -->
+        </button>
+        <input
+          type="range"
+          id="volumeSlider"
+          min="0" max="100" value="80"
+          oninput="setVolume(this.value)"
+          title="Volume"
+        />
+      </div>
+    </div>
+
+  </div><!-- /player-bar -->
+
+</div><!-- /app -->
+
+<!-- ── Keyboard shortcut hint ── -->
+<script>
+  /* Tiny tooltip shown once */
+  if (!localStorage.getItem('resonance_hint_seen')) {
+    window.addEventListener('load', () => {
+      const tip = document.createElement('div');
+      tip.style.cssText = [
+        'position:fixed','bottom:110px','right:24px',
+        'background:#1c1c2e','border:1px solid rgba(200,169,110,0.3)',
+        'color:#8a8799','font-size:11px','font-family:DM Sans,sans-serif',
+        'padding:8px 14px','border-radius:8px','z-index:999',
+        'opacity:0','transition:opacity 0.4s','pointer-events:none'
+      ].join(';');
+      tip.textContent = '⌨️  Space = play/pause  ·  ← / → = skip  ·  S = shuffle  ·  L = loop  ·  M = mute';
+      document.body.appendChild(tip);
+      setTimeout(() => { tip.style.opacity = '1'; }, 600);
+      setTimeout(() => { tip.style.opacity = '0'; tip.addEventListener('transitionend', () => tip.remove()); }, 5000);
+      localStorage.setItem('resonance_hint_seen', '1');
+    });
+  }
+</script>
+
+<script src="player.js"></script>
+</body>
+</html>
